@@ -31,8 +31,7 @@ class NWN:
             await self.bot.send_message(self.bot.get_channel('522000965746819073'), "From NWServer: {}".format(msg))
 
 def setup(bot):
-
-    n = NWNPublish(bot)
+    n = NWN(bot)
 
     loop = asyncio.get_event_loop()
     loop.create_task(n.reader())
