@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "Daz",
+    "INSTALL_MSG" : "A install message that appears as soon as the end user does !cog install repo cogname",
+    "NAME" : "NWNPublish",
+    "SHORT" : "A Short description, appears on !cog list repo",
+    "DESCRIPTION" : "A longer description, appears on !cog list repo cogname",
+    "TAGS" : ["nwn", "redis"],
+    "HIDDEN" : false
+}
