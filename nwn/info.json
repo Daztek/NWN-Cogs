@@ -1,9 +1,9 @@
 {
     "AUTHOR" : "Daz",
-    "INSTALL_MSG" : "A install message that appears as soon as the end user does !cog install repo cogname",
+    "INSTALL_MSG" : "Thank you for installing.",
     "NAME" : "NWN",
-    "SHORT" : "A Short description, appears on !cog list repo",
-    "DESCRIPTION" : "A longer description, appears on !cog list repo cogname",
+    "SHORT" : "A Cog to communicate with a Neverwinter Nights server using Redis",
+    "DESCRIPTION" : "A Cog to communicate with a Neverwinter Nights server using Redis",
     "TAGS" : ["nwn", "redis"],
     "HIDDEN" : false
 }
