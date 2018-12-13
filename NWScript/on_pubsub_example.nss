@@ -6,14 +6,32 @@ void main()
 
     if( data.channel == NWNCOGS_INCOMING_REDIS_CHANNEL && GetStringLength(data.message) > 0 )
     {
-        struct NWNCogs_DiscordEmbed discordEmbed = NWNCogs_DiscordEmbed_Simple(
-                                                                    GetName(GetModule()),
-                                                                    "'" + data.message + "' Response",
-                                                                    RandomName(NAME_FAMILIAR),
-                                                                    NWNCogs_RBGToDiscordColor(Random(256), Random(256), Random(256))
-        );
+        if( data.message == "FULL" )
+        {
+            struct NWNCogs_DiscordEmbed discordEmbed = NWNCogs_DiscordEmbed_Full(
+                                                                        GetName(GetModule()),
+                                                                        "https://i.imgur.com/k7AyXCD.png",
+                                                                        "'" + data.message + "' Response",
+                                                                        RandomName(NAME_FAMILIAR),
+                                                                        NWNCogs_RBGToDiscordColor(Random(256), Random(256), Random(256)),
+                                                                        "https://i.imgur.com/k7AyXCD.png",
+                                                                        "Sent from my iPhone",
+                                                                        "https://i.imgur.com/k7AyXCD.png"
+            );
 
-        NWNCogs_PublishDiscordResponse_Embed(discordEmbed);
+            NWNCogs_PublishDiscordResponse_Embed(discordEmbed);
+        }
+        else
+        {
+            struct NWNCogs_DiscordEmbed discordEmbed = NWNCogs_DiscordEmbed_Simple(
+                                                                        GetName(GetModule()),
+                                                                        "'" + data.message + "' Response",
+                                                                        RandomName(NAME_FAMILIAR),
+                                                                        NWNCogs_RBGToDiscordColor(Random(256), Random(256), Random(256))
+            );
+
+            NWNCogs_PublishDiscordResponse_Embed(discordEmbed);
+        }
     }
     else
     if( data.channel == NWNCOGS_INCOMING_REDIS_CHANNEL_RESTRICTED && GetStringLength(data.message) > 0 )
