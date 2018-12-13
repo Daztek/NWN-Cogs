@@ -22,7 +22,7 @@ class NWN:
         self.settings = fileIO('data/nwn/settings.json', 'load')
         self.valid_settings = self.check_settings()
         if not self.valid_settings:
-            raise RuntimeError("You need to set your settings.")
+            raise RuntimeError("Error: Missing settings")
 
         self.responseChannel = self.bot.get_channel(self.settings["discord_response_channel_id"])
 
@@ -38,17 +38,17 @@ class NWN:
                 return False
         return True
 
-    @commands.command()
-    async def publish(self, redis_command: str):
+    @commands.command(no_pm=True)
+    async def publish(self, *, redis_command: str):
         """Publishes a Command to the Redis Server"""
 
         await self.redisConn.publish('from.bot', redis_command)
 
         await self.bot.say("To NWServer: {}".format(redis_command))
 
-    @commands.command()
+    @commands.command(no_pm=True)
     @checks.admin()
-    async def publish_r(self, redis_command: str):
+    async def publish_r(self, *, redis_command: str):
         """Publishes a Restricted Command to the Redis Server"""
 
         await self.redisConn.publish('from.bot.restricted', redis_command)
@@ -68,6 +68,7 @@ class NWN:
                     await self.bot.send_message(responseChannel, "From NWServer: {}".format(message["data"].decode('UTF-8')))
                 else:
                     embed = discord.Embed(title=data["title"], description=data["description"], color=data["color"])
+                    embed.set_thumbnail(url=data["image_url"])
                     embed.set_author(name=data["author"], icon_url=data["author_icon_url"])
                     embed.set_thumbnail(url=data["thumbnail_url"])
                     embed.set_footer(text=data["footer_text"], icon_url=data["footer_icon_url"])

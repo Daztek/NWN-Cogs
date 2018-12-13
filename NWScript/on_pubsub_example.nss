@@ -14,8 +14,9 @@ void main()
                                                                         "'" + data.message + "' Response",
                                                                         RandomName(NAME_FAMILIAR),
                                                                         NWNCogs_RBGToDiscordColor(Random(256), Random(256), Random(256)),
+                                                                        "",
                                                                         "https://i.imgur.com/k7AyXCD.png",
-                                                                        "Sent from my iPhone",
+                                                                        "Sent from my NWServer",
                                                                         "https://i.imgur.com/k7AyXCD.png"
             );
 

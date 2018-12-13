@@ -12,6 +12,9 @@ const string NWNCOGS_OUTGOING_REDIS_CHANNEL                     = "from.nwserver
 
 /* *** */
 
+struct NWNCogs_DiscordEmbed NWNCogs_DiscordEmbed_Simple(string sAuthor, string sTitle, string sDescription, int nColor);
+struct NWNCogs_DiscordEmbed NWNCogs_DiscordEmbed_Full(string sAuthor, string sAuthorIconUrl, string sTitle, string sDescription, int nColor, string sImageUrl, string sThumbnailUrl, string sFooterText, string sFooterIconUrl);
+
 // Send a simple text only response to Discord
 void NWNCogs_PublishDiscordResponse_Simple(string sResponse);
 // Send an embed response to Discord
@@ -29,6 +32,7 @@ struct NWNCogs_DiscordEmbed
     string sDescription;
     int nColor;
 
+    string sImageUrl;
     string sThumbnailUrl;
 
     string sAuthor;
@@ -46,6 +50,7 @@ struct NWNCogs_DiscordEmbed NWNCogs_DiscordEmbed_Empty()
     discordEmbed.sDescription = "";
     discordEmbed.nColor = 0;
 
+    discordEmbed.sImageUrl = "";
     discordEmbed.sThumbnailUrl = "";
 
     discordEmbed.sAuthor = "";
@@ -69,13 +74,14 @@ struct NWNCogs_DiscordEmbed NWNCogs_DiscordEmbed_Simple(string sAuthor, string s
     return discordEmbed;
 }
 
-struct NWNCogs_DiscordEmbed NWNCogs_DiscordEmbed_Full(string sAuthor, string sAuthorIconUrl, string sTitle, string sDescription, int nColor, string sThumbnailUrl, string sFooterText, string sFooterIconUrl)
+struct NWNCogs_DiscordEmbed NWNCogs_DiscordEmbed_Full(string sAuthor, string sAuthorIconUrl, string sTitle, string sDescription, int nColor, string sImageUrl, string sThumbnailUrl, string sFooterText, string sFooterIconUrl)
 {
     struct NWNCogs_DiscordEmbed discordEmbed = NWNCogs_DiscordEmbed_Empty();
 
     discordEmbed.sTitle = sTitle;
     discordEmbed.sDescription = sDescription;
     discordEmbed.nColor = nColor;
+    discordEmbed.sImageUrl = sImageUrl;
     discordEmbed.sThumbnailUrl = sThumbnailUrl;
     discordEmbed.sAuthor = sAuthor;
     discordEmbed.sAuthorIconUrl = sAuthorIconUrl;
@@ -102,6 +108,7 @@ void NWNCogs_PublishDiscordResponse_Embed(struct NWNCogs_DiscordEmbed discordEmb
     sEmbed += "\"description\": \""     + discordEmbed.sDescription         + "\",";
     sEmbed += "\"color\": "             + IntToString(discordEmbed.nColor)  + ",";
 
+    sEmbed += "\"image_url\": \""       + discordEmbed.sImageUrl            + "\",";
     sEmbed += "\"thumbnail_url\": \""   + discordEmbed.sThumbnailUrl        + "\",";
 
     sEmbed += "\"author\": \""          + discordEmbed.sAuthor              + "\",";
