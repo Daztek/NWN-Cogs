@@ -68,7 +68,7 @@ class NWN:
                     await self.bot.send_message(responseChannel, "From NWServer: {}".format(message["data"].decode('UTF-8')))
                 else:
                     embed = discord.Embed(title=data["title"], description=data["description"], color=data["color"])
-                    embed.set_thumbnail(url=data["image_url"])
+                    embed.set_image(url=data["image_url"])
                     embed.set_author(name=data["author"], icon_url=data["author_icon_url"])
                     embed.set_thumbnail(url=data["thumbnail_url"])
                     embed.set_footer(text=data["footer_text"], icon_url=data["footer_icon_url"])
