@@ -6,9 +6,11 @@
     Repository: https://github.com/Daztek/NWN-Cogs
 */
 
-const string NWNCOGS_INCOMING_REDIS_CHANNEL                     = "from.bot";
-const string NWNCOGS_INCOMING_REDIS_CHANNEL_RESTRICTED          = "from.bot.restricted";
-const string NWNCOGS_OUTGOING_REDIS_CHANNEL                     = "from.nwserver";
+const string NWNCOGS_INCOMING_REDIS_CHANNEL                     = "nwncogs.from.bot.commands";
+const string NWNCOGS_INCOMING_REDIS_CHANNEL_RESTRICTED          = "nwncogs.from.bot.commands.restricted";
+const string NWNCOGS_INCOMING_REDIS_CHANNEL_CHAT                = "nwncogs.from.bot.chat";
+const string NWNCOGS_OUTGOING_REDIS_CHANNEL                     = "nwncogs.from.nwserver.response";
+const string NWNCOGS_OUTGOING_REDIS_CHANNEL_CHAT                = "nwncogs.from.nwserver.chat";
 
 /* *** */
 
@@ -16,9 +18,9 @@ struct NWNCogs_DiscordEmbed NWNCogs_DiscordEmbed_Simple(string sAuthor, string s
 struct NWNCogs_DiscordEmbed NWNCogs_DiscordEmbed_Full(string sAuthor, string sAuthorIconUrl, string sTitle, string sDescription, int nColor, string sImageUrl, string sThumbnailUrl, string sFooterText, string sFooterIconUrl);
 
 // Send a simple text only response to Discord
-void NWNCogs_PublishDiscordResponse_Simple(string sResponse);
+void NWNCogs_PublishDiscordResponse_Simple(string sChannel, string sResponse);
 // Send an embed response to Discord
-void NWNCogs_PublishDiscordResponse_Embed(struct NWNCogs_DiscordEmbed de);
+void NWNCogs_PublishDiscordResponse_Embed(string sChannel, struct NWNCogs_DiscordEmbed de);
 
 // Convert a RBG color to a Discord Color
 // Parameter range: 0-255
@@ -93,12 +95,12 @@ struct NWNCogs_DiscordEmbed NWNCogs_DiscordEmbed_Full(string sAuthor, string sAu
 
 /* *** */
 
-void NWNCogs_PublishDiscordResponse_Simple(string sResponse)
+void NWNCogs_PublishDiscordResponse_Simple(string sChannel, string sResponse)
 {
-    NWNX_Redis_PUBLISH(NWNCOGS_OUTGOING_REDIS_CHANNEL, sResponse);
+    NWNX_Redis_PUBLISH(sChannel, sResponse);
 }
 
-void NWNCogs_PublishDiscordResponse_Embed(struct NWNCogs_DiscordEmbed discordEmbed)
+void NWNCogs_PublishDiscordResponse_Embed(string sChannel, struct NWNCogs_DiscordEmbed discordEmbed)
 {
     string sEmbed = "";
 
@@ -119,7 +121,7 @@ void NWNCogs_PublishDiscordResponse_Embed(struct NWNCogs_DiscordEmbed discordEmb
 
     sEmbed += "}";
 
-    NWNX_Redis_PUBLISH(NWNCOGS_OUTGOING_REDIS_CHANNEL, sEmbed);
+    NWNX_Redis_PUBLISH(sChannel, sEmbed);
 }
 
 int NWNCogs_RBGToDiscordColor(int nRed, int nGreen, int nBlue)

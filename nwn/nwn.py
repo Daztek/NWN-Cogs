@@ -25,10 +25,11 @@ class NWN:
             raise RuntimeError("Error: Missing settings")
 
         self.responseChannel = self.bot.get_channel(self.settings["discord_response_channel_id"])
+        self.chatChannel = self.bot.get_channel(self.settings["discord_chat_channel_id"])
 
         self.redisConn = StrictRedis(host=self.settings["redis_host"], port=self.settings["redis_port"])        
         self.redisSubscribe = self.redisConn.pubsub()
-        self.redisSubFuture = asyncio.ensure_future(self.sub_reader(self.redisSubscribe, self.responseChannel))
+        self.redisSubFuture = asyncio.ensure_future(self.sub_reader(self.redisSubscribe))
 
     def check_settings(self):
         for k, v in self.settings.items():
@@ -42,7 +43,7 @@ class NWN:
     async def publish(self, *, redis_command: str):
         """Publishes a Command to the Redis Server"""
 
-        await self.redisConn.publish('from.bot', redis_command)
+        await self.redisConn.publish('nwncogs.from.bot.commands', redis_command)
 
         await self.bot.say("To NWServer: {}".format(redis_command))
 
@@ -51,21 +52,28 @@ class NWN:
     async def publish_r(self, *, redis_command: str):
         """Publishes a Restricted Command to the Redis Server"""
 
-        await self.redisConn.publish('from.bot.restricted', redis_command)
+        await self.redisConn.publish('nwncogs.from.bot.commands.restricted', redis_command)
 
         await self.bot.say("(Restricted) To NWServer: {}".format(redis_command))        
    
-    async def sub_reader(self, redisSubscribe, responseChannel):
-        await redisSubscribe.subscribe('from.nwserver')
+    async def sub_reader(self, redisSubscribe):
+        await redisSubscribe.subscribe('nwncogs.from.nwserver.response', 'nwncogs.from.nwserver.chat')
 
         while self == self.bot.get_cog('NWN'):
             message = await redisSubscribe.get_message(ignore_subscribe_messages=True)            
 
             if message:
+                channel = message["channel"].decode('UTF-8')
+
+                if channel == "nwncogs.from.nwserver.response":
+                    messageChannel = self.responseChannel 
+                elif channel == "nwncogs.from.nwserver.chat":
+                    messageChannel = self.chatChannel
+
                 try:
                     data = json.loads(message["data"])
                 except ValueError:
-                    await self.bot.send_message(responseChannel, "From NWServer: {}".format(message["data"].decode('UTF-8')))
+                    await self.bot.send_message(messageChannel, "From NWServer: {}".format(message["data"].decode('UTF-8')))
                 else:
                     embed = discord.Embed(title=data["title"], description=data["description"], color=data["color"])
                     embed.set_image(url=data["image_url"])
@@ -73,13 +81,21 @@ class NWN:
                     embed.set_thumbnail(url=data["thumbnail_url"])
                     embed.set_footer(text=data["footer_text"], icon_url=data["footer_icon_url"])
             
-                    await self.bot.send_message(responseChannel, embed=embed)
+                    await self.bot.send_message(messageChannel, embed=embed)
 
             await asyncio.sleep(0.001)
+
+    async def check_chat_messages(self, message):
+        if message.author.id == self.bot.user.id:
+            return
+
+        if message.channel == self.chatChannel:
+            await self.redisConn.publish('nwncogs.from.bot.chat', "{}: {}".format(message.author, message.content))
         
     def __unload(self):
         self.redisSubscribe.close()
         self.redisSubFuture.cancel()
+        self.bot.remove_listener(self.check_chat_messages, "on_message")
 
 def check_folder():
     if not os.path.exists("data/nwn"):
@@ -89,7 +105,8 @@ def check_folder():
 def check_file():
     settings = {"redis_host": "",
                 "redis_port": 0,
-                "discord_response_channel_id": ""}
+                "discord_response_channel_id": "",
+                "discord_chat_channel_id": ""}
 
     f = "data/nwn/settings.json"
     
@@ -102,4 +119,5 @@ def setup(bot):
     check_file()
       
     n = NWN(bot)
+    bot.add_listener(n.check_chat_messages, "on_message")
     bot.add_cog(n)
