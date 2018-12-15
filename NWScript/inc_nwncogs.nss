@@ -6,15 +6,20 @@
     Repository: https://github.com/Daztek/NWN-Cogs
 */
 
-const string NWNCOGS_INCOMING_REDIS_CHANNEL                     = "nwncogs.from.bot.commands";
-const string NWNCOGS_INCOMING_REDIS_CHANNEL_RESTRICTED          = "nwncogs.from.bot.commands.restricted";
-const string NWNCOGS_INCOMING_REDIS_CHANNEL_CHAT                = "nwncogs.from.bot.chat";
-const string NWNCOGS_OUTGOING_REDIS_CHANNEL                     = "nwncogs.from.nwserver.response";
-const string NWNCOGS_OUTGOING_REDIS_CHANNEL_CHAT                = "nwncogs.from.nwserver.chat";
+const string NWNCOGS_CHANNEL_INCOMING_COMMANDS_PLAYER                       = "nwncogs.from.bot.commands.player";
+const string NWNCOGS_CHANNEL_OUTGOING_RESPONSE_PLAYER                       = "nwncogs.from.nwserver.response.player";
+
+const string NWNCOGS_CHANNEL_INCOMING_COMMANDS_ADMIN                        = "nwncogs.from.bot.commands.admin";
+const string NWNCOGS_CHANNEL_OUTGOING_RESPONSE_ADMIN                        = "nwncogs.from.nwserver.response.admin";
+
+const string NWNCOGS_CHANNEL_INCOMING_CHAT                                  = "nwncogs.from.bot.chat";
+const string NWNCOGS_CHANNEL_OUTGOING_CHAT                                  = "nwncogs.from.nwserver.chat";
 
 /* *** */
 
+// Empty parameters will not be shown
 struct NWNCogs_DiscordEmbed NWNCogs_DiscordEmbed_Simple(string sAuthor, string sTitle, string sDescription, int nColor);
+// Empty parameters will not be shown
 struct NWNCogs_DiscordEmbed NWNCogs_DiscordEmbed_Full(string sAuthor, string sAuthorIconUrl, string sTitle, string sDescription, int nColor, string sImageUrl, string sThumbnailUrl, string sFooterText, string sFooterIconUrl);
 
 // Send a simple text only response to Discord
@@ -22,9 +27,13 @@ void NWNCogs_PublishDiscordResponse_Simple(string sChannel, string sResponse);
 // Send an embed response to Discord
 void NWNCogs_PublishDiscordResponse_Embed(string sChannel, struct NWNCogs_DiscordEmbed de);
 
+// Helper function to build the actual json response from a discord embed struct
+string NWNCogs_JsonResponseBuilder(struct NWNCogs_DiscordEmbed discordEmbed);
 // Convert a RBG color to a Discord Color
 // Parameter range: 0-255
-int NWNCogs_RBGToDiscordColor(int nRed, int nGreen, int nBlue);
+int NWNCogs_RBGToDiscordColor(int nRed = 0, int nGreen = 0, int nBlue = 0);
+// Wrapper function
+int NWNCogs_GetIsValidBotCommand(string sChannel, struct NWNX_Redis_PubSubMessageData data);
 
 /* *** */
 
@@ -95,12 +104,21 @@ struct NWNCogs_DiscordEmbed NWNCogs_DiscordEmbed_Full(string sAuthor, string sAu
 
 /* *** */
 
-void NWNCogs_PublishDiscordResponse_Simple(string sChannel, string sResponse)
+void NWNCogs_PublishDiscordResponse_Simple(string sOutgoingChannel, string sResponse)
 {
-    NWNX_Redis_PUBLISH(sChannel, sResponse);
+    NWNX_Redis_PUBLISH(sOutgoingChannel, sResponse);
 }
 
-void NWNCogs_PublishDiscordResponse_Embed(string sChannel, struct NWNCogs_DiscordEmbed discordEmbed)
+void NWNCogs_PublishDiscordResponse_Embed(string sOutgoingChannel, struct NWNCogs_DiscordEmbed discordEmbed)
+{
+    string sEmbed = NWNCogs_JsonResponseBuilder(discordEmbed);
+
+    NWNX_Redis_PUBLISH(sOutgoingChannel, sEmbed);
+}
+
+/* *** */
+
+string NWNCogs_JsonResponseBuilder(struct NWNCogs_DiscordEmbed discordEmbed)
 {
     string sEmbed = "";
 
@@ -121,10 +139,10 @@ void NWNCogs_PublishDiscordResponse_Embed(string sChannel, struct NWNCogs_Discor
 
     sEmbed += "}";
 
-    NWNX_Redis_PUBLISH(sChannel, sEmbed);
+    return sEmbed;
 }
 
-int NWNCogs_RBGToDiscordColor(int nRed, int nGreen, int nBlue)
+int NWNCogs_RBGToDiscordColor(int nRed = 0, int nGreen = 0, int nBlue = 0)
 {
     if( nRed < 0 ) nRed = 0; else if( nRed > 255 ) nRed = 255;
     if( nGreen < 0 ) nGreen = 0; else if( nGreen > 255 ) nGreen = 255;
@@ -133,4 +151,9 @@ int NWNCogs_RBGToDiscordColor(int nRed, int nGreen, int nBlue)
     int nColor = (nRed * 65536) + (nGreen * 256) + nBlue;
 
     return nColor < 1 ? 1 : nColor;
+}
+
+int NWNCogs_GetIsValidBotCommand(string sChannel, struct NWNX_Redis_PubSubMessageData data)
+{
+    return data.channel == sChannel && GetStringLength(data.message) > 0;
 }

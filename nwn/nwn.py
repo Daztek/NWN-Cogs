@@ -40,24 +40,24 @@ class NWN:
         return True
 
     @commands.command(no_pm=True)
-    async def publish(self, *, redis_command: str):
+    async def player(self, *, redis_command: str):
         """Publishes a Command to the Redis Server"""
 
-        await self.redisConn.publish('nwncogs.from.bot.commands', redis_command)
+        await self.redisConn.publish('nwncogs.from.bot.commands.player', redis_command)
 
         await self.bot.say("To NWServer: {}".format(redis_command))
 
     @commands.command(no_pm=True)
     @checks.admin()
-    async def publish_r(self, *, redis_command: str):
+    async def admin(self, *, redis_command: str):
         """Publishes a Restricted Command to the Redis Server"""
 
-        await self.redisConn.publish('nwncogs.from.bot.commands.restricted', redis_command)
+        await self.redisConn.publish('nwncogs.from.bot.commands.admin', redis_command)
 
         await self.bot.say("(Restricted) To NWServer: {}".format(redis_command))        
    
     async def sub_reader(self, redisSubscribe):
-        await redisSubscribe.subscribe('nwncogs.from.nwserver.response', 'nwncogs.from.nwserver.chat')
+        await redisSubscribe.subscribe('nwncogs.from.nwserver.response.player', 'nwncogs.from.nwserver.response.admin', 'nwncogs.from.nwserver.chat')
 
         while self == self.bot.get_cog('NWN'):
             message = await redisSubscribe.get_message(ignore_subscribe_messages=True)            
@@ -65,7 +65,7 @@ class NWN:
             if message:
                 channel = message["channel"].decode('UTF-8')
 
-                if channel == "nwncogs.from.nwserver.response":
+                if channel == "nwncogs.from.nwserver.response.player" or channel == 'nwncogs.from.nwserver.response.admin':
                     messageChannel = self.responseChannel 
                 elif channel == "nwncogs.from.nwserver.chat":
                     messageChannel = self.chatChannel
@@ -90,7 +90,7 @@ class NWN:
             return
 
         if message.channel == self.chatChannel:
-            await self.redisConn.publish('nwncogs.from.bot.chat', "{}: {}".format(message.author, message.content))
+            await self.redisConn.publish('nwncogs.from.bot.chat', "{}:{}".format(message.author.display_name, message.content))
         
     def __unload(self):
         self.redisSubscribe.close()
