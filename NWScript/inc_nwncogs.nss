@@ -157,3 +157,5 @@ int NWNCogs_GetIsValidBotCommand(string sChannel, struct NWNX_Redis_PubSubMessag
 {
     return data.channel == sChannel && GetStringLength(data.message) > 0;
 }
+
+/* *** */
