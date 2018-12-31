@@ -95,7 +95,7 @@ class NWN:
         self.redisSubscribe.close()
         self.redisSubFuture.cancel()
         
-        if not self.chatChannel:
+        if self.chatChannel:
             self.bot.remove_listener(self.check_chat_messages, "on_message")
 
 def check_folder():
