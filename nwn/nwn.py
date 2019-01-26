@@ -80,15 +80,17 @@ class NWN:
                 else:
                     try:
                         data = json.loads(message["data"])
-                        await self.bot.send_message(discordChannel, "{}".format(message["data"].decode('UTF-8')))
-                    except ValueError as e:
                         embed = discord.Embed(title=data["title"], description=data["description"], color=data["color"])
                         embed.set_image(url=data["image_url"])
                         embed.set_author(name=data["author"], icon_url=data["author_icon_url"])
                         embed.set_thumbnail(url=data["thumbnail_url"])
                         embed.set_footer(text=data["footer_text"], icon_url=data["footer_icon_url"])
-                
                         await self.bot.send_message(discordChannel, embed=embed)
+                    # json.loads() will throw a ValueError
+                    # exception if the data is not json-formatted
+                    except ValueError as e:
+                        # The data is not json;  Just send it
+                        await self.bot.send_message(discordChannel, "{}".format(message["data"].decode('UTF-8')))
 
             await asyncio.sleep(0.001)
 
