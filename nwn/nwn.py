@@ -20,11 +20,10 @@ class NWN:
 
         self.settings = fileIO('data/nwn/settings.json', 'load')
 
-        self.playerChannel = self.bot.get_channel(self.settings["DISCORD_PLAYER_CHANNEL_ID"])
-        self.adminChannel = self.bot.get_channel(self.settings["DISCORD_ADMIN_CHANNEL_ID"])
-        self.chatChannel = self.bot.get_channel(self.settings["DISCORD_CHAT_CHANNEL_ID"])
-
-        if not self.chatChannel:
+        if (
+            self.settings["DISCORD_CHAT_CHANNEL_ID"] is None or
+            self.settings["DISCORD_CHAT_CHANNEL_ID"] == ""
+        ):
             print("NWN -> NOTICE: Chat Channel ID not set, disabling chat functionality!")
         else:
             self.bot.add_listener(self.check_chat_messages, "on_message")
@@ -57,30 +56,39 @@ class NWN:
             message = await redisSubscribe.get_message(ignore_subscribe_messages=True)            
 
             if message:
-                channel = message["channel"].decode('UTF-8')
+                redisChannelStr = message["channel"].decode('UTF-8')
 
-                if channel == "nwncogs.from.nwserver.response.player":
-                    messageChannel = self.playerChannel
-                elif channel == 'nwncogs.from.nwserver.response.admin':
-                    messageChannel = self.adminChannel 
-                elif channel == "nwncogs.from.nwserver.chat":
-                    messageChannel = self.chatChannel
+                if redisChannelStr == "nwncogs.from.nwserver.response.player":
+                    discordChannelStr = self.settings["DISCORD_PLAYER_CHANNEL_ID"]
+                elif redisChannelStr == 'nwncogs.from.nwserver.response.admin':
+                    discordChannelStr = self.settings["DISCORD_ADMIN_CHANNEL_ID"]
+                elif redisChannelStr == "nwncogs.from.nwserver.chat":
+                    discordChannelStr = self.settings["DISCORD_CHAT_CHANNEL_ID"]
+                else:
+                    discordChannelStr = None
 
-                if not messageChannel:
-                    print("NWN -> NOTICE: Message received from '{}' but Response Channel ID has not been set!".format(channel))
+                if (
+                    discordChannelStr is None or
+                    discordChannelStr == ""
+                ):
+                    print("NWN -> NOTICE: Message received from '{}' but Response Channel ID has not been set!".format(redisChannelStr))
+
+                discordChannel = self.bot.get_channel(discordChannelStr)
+
+                if discordChannel is None:
+                    print("NWN -> NOTICE: Message received from '{}' but unable to send to discord channel '{}'; possibly we're not connected.".format(redisChannelStr, discordChannelStr))
                 else:
                     try:
                         data = json.loads(message["data"])
-                    except ValueError:
-                        await self.bot.send_message(messageChannel, "{}".format(message["data"].decode('UTF-8')))
-                    else:
+                        await self.bot.send_message(discordChannel, "{}".format(message["data"].decode('UTF-8')))
+                    except ValueError as e:
                         embed = discord.Embed(title=data["title"], description=data["description"], color=data["color"])
                         embed.set_image(url=data["image_url"])
                         embed.set_author(name=data["author"], icon_url=data["author_icon_url"])
                         embed.set_thumbnail(url=data["thumbnail_url"])
                         embed.set_footer(text=data["footer_text"], icon_url=data["footer_icon_url"])
                 
-                        await self.bot.send_message(messageChannel, embed=embed)
+                        await self.bot.send_message(discordChannel, embed=embed)
 
             await asyncio.sleep(0.001)
 
