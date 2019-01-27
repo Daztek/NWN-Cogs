@@ -50,7 +50,12 @@ class NWN:
         #await self.bot.say("Admin Command To NWServer: {}".format(redis_command))        
    
     async def sub_reader(self, redisSubscribe):
-        await redisSubscribe.subscribe('nwncogs.from.nwserver.response.player', 'nwncogs.from.nwserver.response.admin', 'nwncogs.from.nwserver.chat')
+        await redisSubscribe.subscribe(
+            'nwncogs.from.nwserver.response.player',
+            'nwncogs.from.nwserver.response.admin',
+            'nwncogs.from.nwserver.chat',
+            'nwncogs.from.nwserver.broadcast'
+        )
 
         while self == self.bot.get_cog('NWN'):
             message = await redisSubscribe.get_message(ignore_subscribe_messages=True)            
@@ -64,6 +69,8 @@ class NWN:
                     discordChannelStr = self.settings["DISCORD_ADMIN_CHANNEL_ID"]
                 elif redisChannelStr == "nwncogs.from.nwserver.chat":
                     discordChannelStr = self.settings["DISCORD_CHAT_CHANNEL_ID"]
+                elif redisChannelStr == "nwncogs.from.nwserver.broadcast":
+                    discordChannelStr = self.settings["DISCORD_BROADCAST_CHANNEL_ID"]
                 else:
                     discordChannelStr = None
 
@@ -118,7 +125,8 @@ def check_file():
                 "REDIS_PORT": 6379,
                 "DISCORD_PLAYER_CHANNEL_ID": "",
                 "DISCORD_ADMIN_CHANNEL_ID": "",
-                "DISCORD_CHAT_CHANNEL_ID": ""}
+                "DISCORD_CHAT_CHANNEL_ID": "",
+                "DISCORD_BROADCAST_CHANNEL_ID": ""}
 
     f = "data/nwn/settings.json"
     

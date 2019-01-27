@@ -15,6 +15,8 @@ const string NWNCOGS_CHANNEL_OUTGOING_RESPONSE_ADMIN                        = "n
 const string NWNCOGS_CHANNEL_INCOMING_CHAT                                  = "nwncogs.from.bot.chat";
 const string NWNCOGS_CHANNEL_OUTGOING_CHAT                                  = "nwncogs.from.nwserver.chat";
 
+const string NWNCOGS_CHANNEL_OUTGOING_BROADCAST                             = "nwncogs.from.nwserver.broadcast";
+
 /* *** */
 
 // Empty parameters will not be shown
