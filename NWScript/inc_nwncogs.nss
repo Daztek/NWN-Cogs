@@ -36,7 +36,10 @@ struct NWNCogs_DiscordEmbed NWNCogs_DiscordEmbed_Full(
     string sImageUrl = "",
     string sThumbnailUrl = "",
     string sFooterText = "",
-    string sFooterIconUrl = ""
+    string sFooterIconUrl = "",
+    string sFieldsName = "",
+    string sFieldsValue = "",
+    int bFieldsInline = TRUE
 );
 
 // Send a simple text only response to Discord
@@ -82,6 +85,10 @@ struct NWNCogs_DiscordEmbed
 
     string sFooterText;
     string sFooterIconUrl;
+
+    string sFieldsName;
+    string sFieldsValue;
+    int bFieldsInline;
 };
 
 struct NWNCogs_DiscordEmbed NWNCogs_DiscordEmbed_Empty()
@@ -141,7 +148,10 @@ struct NWNCogs_DiscordEmbed NWNCogs_DiscordEmbed_Full(
     string sImageUrl = "",
     string sThumbnailUrl = "",
     string sFooterText = "",
-    string sFooterIconUrl = ""
+    string sFooterIconUrl = "",
+    string sFieldsName = "",
+    string sFieldsValue = "",
+    int bFieldsInline = TRUE
 )
 {
     struct NWNCogs_DiscordEmbed discordEmbed = NWNCogs_DiscordEmbed_Empty();
@@ -178,6 +188,13 @@ struct NWNCogs_DiscordEmbed NWNCogs_DiscordEmbed_Full(
     }
     if (GetStringLength(sFooterIconUrl) > 0) {
         discordEmbed.sFooterIconUrl = sFooterIconUrl;
+    }
+    if (GetStringLength(sFieldsValue) > 0) {
+        discordEmbed.sFieldsValue = sFieldsValue;
+        if (GetStringLength(sFieldsName)) {
+            discordEmbed.sFieldsName = sFieldsName;
+        }
+        discordEmbed.bFieldsInline = bFieldsInline;
     }
     return discordEmbed;
 }
@@ -223,7 +240,15 @@ string NWNCogs_JsonResponseBuilder(
     sEmbed += "\"author_icon_url\": \"" + discordEmbed.sAuthorIconUrl       + "\",";
 
     sEmbed += "\"footer_text\": \""     + discordEmbed.sFooterText          + "\",";
-    sEmbed += "\"footer_icon_url\": \"" + discordEmbed.sFooterIconUrl       + "\"";
+    sEmbed += "\"footer_icon_url\": \"" + discordEmbed.sFooterIconUrl       + "\",";
+
+    sEmbed += "\"fields_name\": \""     + discordEmbed.sFieldsName          + "\",";
+    sEmbed += "\"fields_value\": \""    + discordEmbed.sFieldsValue         + "\",";
+    if (discordEmbed.bFieldsInline) {
+        sEmbed += "\"fields_inline\": \"True\"";
+    } else {
+        sEmbed += "\"fields_inline\": \"False\"";
+    }
 
     sEmbed += "}";
 

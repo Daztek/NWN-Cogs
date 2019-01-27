@@ -92,6 +92,15 @@ class NWN:
                         embed.set_author(name=data["author"], icon_url=data["author_icon_url"])
                         embed.set_thumbnail(url=data["thumbnail_url"])
                         embed.set_footer(text=data["footer_text"], icon_url=data["footer_icon_url"])
+                        if len(data["fields_inline"]) > 0:
+                            if len(data["fields_name"]) > 0:
+                                embed.add_field(
+                                    name=data["fields_name"],
+                                    value=data["fields_value"],
+                                    inline=data["fields_inline"] in ('True', 'true', 'TRUE')
+                                )
+                            else:
+                                print("NWN -> NOTICE: Message received from '{}' had non-empty 'fields_value' key but empty 'fields_name' key;  This would cause a BAD REQUEST. Skipping message".format(redisChannelStr))
                         await self.bot.send_message(discordChannel, embed=embed)
                     # json.loads() will throw a ValueError
                     # exception if the data is not json-formatted
