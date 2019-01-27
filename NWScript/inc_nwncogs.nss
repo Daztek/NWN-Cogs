@@ -6,16 +6,16 @@
     Repository: https://github.com/Daztek/NWN-Cogs
 */
 
-const string NWNCOGS_CHANNEL_INCOMING_COMMANDS_PLAYER                       = "nwncogs.from.bot.commands.player";
-const string NWNCOGS_CHANNEL_OUTGOING_RESPONSE_PLAYER                       = "nwncogs.from.nwserver.response.player";
+const string NWNCOGS_CHANNEL_INCOMING_COMMANDS_PLAYER = "nwncogs.from.bot.commands.player";
+const string NWNCOGS_CHANNEL_OUTGOING_RESPONSE_PLAYER = "nwncogs.from.nwserver.response.player";
 
-const string NWNCOGS_CHANNEL_INCOMING_COMMANDS_ADMIN                        = "nwncogs.from.bot.commands.admin";
-const string NWNCOGS_CHANNEL_OUTGOING_RESPONSE_ADMIN                        = "nwncogs.from.nwserver.response.admin";
+const string NWNCOGS_CHANNEL_INCOMING_COMMANDS_ADMIN  = "nwncogs.from.bot.commands.admin";
+const string NWNCOGS_CHANNEL_OUTGOING_RESPONSE_ADMIN  = "nwncogs.from.nwserver.response.admin";
 
-const string NWNCOGS_CHANNEL_INCOMING_CHAT                                  = "nwncogs.from.bot.chat";
-const string NWNCOGS_CHANNEL_OUTGOING_CHAT                                  = "nwncogs.from.nwserver.chat";
+const string NWNCOGS_CHANNEL_INCOMING_CHAT            = "nwncogs.from.bot.chat";
+const string NWNCOGS_CHANNEL_OUTGOING_CHAT            = "nwncogs.from.nwserver.chat";
 
-const string NWNCOGS_CHANNEL_OUTGOING_BROADCAST                             = "nwncogs.from.nwserver.broadcast";
+const string NWNCOGS_CHANNEL_OUTGOING_BROADCAST       = "nwncogs.from.nwserver.broadcast";
 
 /* *** */
 
