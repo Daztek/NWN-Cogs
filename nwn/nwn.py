@@ -117,7 +117,7 @@ class NWN:
         if message.author.id == self.bot.user.id:
             return
 
-        if message.channel == self.chatChannel:
+        if message.channel == self.bot.get_channel(self.settings["DISCORD_CHAT_CHANNEL_ID"]):
             await self.redisConn.publish('nwncogs.from.bot.chat', "{}~{}".format(message.author.display_name, message.content))
         
     def __unload(self):
