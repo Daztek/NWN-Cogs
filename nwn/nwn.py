@@ -107,6 +107,9 @@ class NWN:
                     except ValueError as e:
                         # The data is not json;  Just send it
                         await self.bot.send_message(discordChannel, "{}".format(message["data"].decode('UTF-8')))
+                    except Exception as e:
+                        print("NWN -> ERROR: Caught exception '{}'".format(e))
+                        raise RuntimeError(e) from e
 
             await asyncio.sleep(0.001)
 
