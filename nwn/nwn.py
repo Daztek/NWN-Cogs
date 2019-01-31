@@ -20,11 +20,10 @@ class NWN:
 
         self.settings = fileIO('data/nwn/settings.json', 'load')
 
-        self.playerChannel = self.bot.get_channel(self.settings["DISCORD_PLAYER_CHANNEL_ID"])
-        self.adminChannel = self.bot.get_channel(self.settings["DISCORD_ADMIN_CHANNEL_ID"])
-        self.chatChannel = self.bot.get_channel(self.settings["DISCORD_CHAT_CHANNEL_ID"])
-
-        if not self.chatChannel:
+        if (
+            self.settings["DISCORD_CHAT_CHANNEL_ID"] is None or
+            self.settings["DISCORD_CHAT_CHANNEL_ID"] == ""
+        ):
             print("NWN -> NOTICE: Chat Channel ID not set, disabling chat functionality!")
         else:
             self.bot.add_listener(self.check_chat_messages, "on_message")
@@ -51,36 +50,66 @@ class NWN:
         #await self.bot.say("Admin Command To NWServer: {}".format(redis_command))        
    
     async def sub_reader(self, redisSubscribe):
-        await redisSubscribe.subscribe('nwncogs.from.nwserver.response.player', 'nwncogs.from.nwserver.response.admin', 'nwncogs.from.nwserver.chat')
+        await redisSubscribe.subscribe(
+            'nwncogs.from.nwserver.response.player',
+            'nwncogs.from.nwserver.response.admin',
+            'nwncogs.from.nwserver.chat',
+            'nwncogs.from.nwserver.broadcast'
+        )
 
         while self == self.bot.get_cog('NWN'):
             message = await redisSubscribe.get_message(ignore_subscribe_messages=True)            
 
             if message:
-                channel = message["channel"].decode('UTF-8')
+                redisChannelStr = message["channel"].decode('UTF-8')
 
-                if channel == "nwncogs.from.nwserver.response.player":
-                    messageChannel = self.playerChannel
-                elif channel == 'nwncogs.from.nwserver.response.admin':
-                    messageChannel = self.adminChannel 
-                elif channel == "nwncogs.from.nwserver.chat":
-                    messageChannel = self.chatChannel
+                if redisChannelStr == "nwncogs.from.nwserver.response.player":
+                    discordChannelStr = self.settings["DISCORD_PLAYER_CHANNEL_ID"]
+                elif redisChannelStr == 'nwncogs.from.nwserver.response.admin':
+                    discordChannelStr = self.settings["DISCORD_ADMIN_CHANNEL_ID"]
+                elif redisChannelStr == "nwncogs.from.nwserver.chat":
+                    discordChannelStr = self.settings["DISCORD_CHAT_CHANNEL_ID"]
+                elif redisChannelStr == "nwncogs.from.nwserver.broadcast":
+                    discordChannelStr = self.settings["DISCORD_BROADCAST_CHANNEL_ID"]
+                else:
+                    discordChannelStr = None
 
-                if not messageChannel:
-                    print("NWN -> NOTICE: Message received from '{}' but Response Channel ID has not been set!".format(channel))
+                if (
+                    discordChannelStr is None or
+                    discordChannelStr == ""
+                ):
+                    print("NWN -> NOTICE: Message received from '{}' but Response Channel ID has not been set!".format(redisChannelStr))
+
+                discordChannel = self.bot.get_channel(discordChannelStr)
+
+                if discordChannel is None:
+                    print("NWN -> NOTICE: Message received from '{}' but unable to send to discord channel '{}'; possibly we're not connected.".format(redisChannelStr, discordChannelStr))
                 else:
                     try:
                         data = json.loads(message["data"])
-                    except ValueError:
-                        await self.bot.send_message(messageChannel, "{}".format(message["data"].decode('UTF-8')))
-                    else:
                         embed = discord.Embed(title=data["title"], description=data["description"], color=data["color"])
                         embed.set_image(url=data["image_url"])
                         embed.set_author(name=data["author"], icon_url=data["author_icon_url"])
                         embed.set_thumbnail(url=data["thumbnail_url"])
                         embed.set_footer(text=data["footer_text"], icon_url=data["footer_icon_url"])
-                
-                        await self.bot.send_message(messageChannel, embed=embed)
+                        if len(data["fields_inline"]) > 0:
+                            if len(data["fields_name"]) > 0:
+                                embed.add_field(
+                                    name=data["fields_name"],
+                                    value=data["fields_value"],
+                                    inline=data["fields_inline"] in ('True', 'true', 'TRUE')
+                                )
+                            else:
+                                print("NWN -> NOTICE: Message received from '{}' had non-empty 'fields_value' key but empty 'fields_name' key;  This would cause a BAD REQUEST. Skipping message".format(redisChannelStr))
+                        await self.bot.send_message(discordChannel, embed=embed)
+                    # json.loads() will throw a ValueError
+                    # exception if the data is not json-formatted
+                    except ValueError as e:
+                        # The data is not json;  Just send it
+                        await self.bot.send_message(discordChannel, "{}".format(message["data"].decode('UTF-8')))
+                    except Exception as e:
+                        print("NWN -> ERROR: Caught exception '{}'".format(e))
+                        raise RuntimeError(e) from e
 
             await asyncio.sleep(0.001)
 
@@ -88,7 +117,7 @@ class NWN:
         if message.author.id == self.bot.user.id:
             return
 
-        if message.channel == self.chatChannel:
+        if message.channel == self.bot.get_channel(self.settings["DISCORD_CHAT_CHANNEL_ID"]):
             await self.redisConn.publish('nwncogs.from.bot.chat', "{}~{}".format(message.author.display_name, message.content))
         
     def __unload(self):
@@ -108,7 +137,8 @@ def check_file():
                 "REDIS_PORT": 6379,
                 "DISCORD_PLAYER_CHANNEL_ID": "",
                 "DISCORD_ADMIN_CHANNEL_ID": "",
-                "DISCORD_CHAT_CHANNEL_ID": ""}
+                "DISCORD_CHAT_CHANNEL_ID": "",
+                "DISCORD_BROADCAST_CHANNEL_ID": ""}
 
     f = "data/nwn/settings.json"
     
